@@ -4,6 +4,9 @@
 
 **How I secured a real, live mobile esports platform, and proved it with 416 automated attack tests.**
 
+📖 Read it as a website: **[ghostzw1.github.io/gamearena-security-case-study](https://ghostzw1.github.io/gamearena-security-case-study/)** ·
+💻 Code and tests: **[GitHub repository](https://github.com/Ghostzw1/gamearena-security-case-study)**
+
 GameArena is a tournament platform for Call of Duty: Mobile players in Southern Africa: accounts, live chat,
 clans, country chats, tournaments with squads and results, sponsored events, photo/video sharing, push
 notifications and an admin panel. It runs in production on **Next.js + Supabase (Postgres) + Vercel**.
@@ -54,19 +57,7 @@ permissions).
 
 ## Defence in depth
 
-```mermaid
-flowchart LR
-  P["Phone (browser)"] -->|HTTPS, strict CSP,<br/>security headers| V["Vercel / Next.js server"]
-  V -->|"Validated input (zod),<br/>user's own session only"| S["Supabase Postgres"]
-  P -.->|"Live chat (WSS),<br/>signed file links"| S
-  subgraph S2 [Database = last line of defence]
-    S --> R["Row Level Security<br/>on every table"]
-    S --> G["Column-level grants"]
-    S --> C["CHECK constraints"]
-    S --> T["Triggers: rate limits,<br/>chat filter, integrity"]
-    S --> F["SECURITY DEFINER functions<br/>(search_path = '')"]
-  end
-```
+![Defence in depth: phone to Next.js to Supabase, where row level security, grants, checks, triggers and hardened functions block both normal traffic and attackers using the public key](docs/assets/defence-in-depth.svg)
 
 The key design rule: **the browser and the server are never trusted to enforce security.** The Supabase
 "anon" key is public by design, so anyone can talk to the database directly. Every rule therefore lives
@@ -105,8 +96,9 @@ Full list: **[docs/controls.md](docs/controls.md)**.
 | [Testing approach](docs/testing.md) | How the attack tests emulate Supabase, and their limits |
 | [Incidents & lessons](docs/incidents-and-lessons.md) | Real mistakes found during the build, how they were fixed, known limitations |
 | [What this taught me](docs/career-skills.md) | Skills, mapping to security roles and certifications, next steps |
-| [Code excerpts](snippets/) | Magic bytes, SSRF allowlist, VAPID signing, constant-time secrets, CSP, open-redirect guard |
-| [Migrations](migrations/) | The real database security layer, in order |
+| [Code excerpts](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/snippets) | Magic bytes, SSRF allowlist, VAPID signing, constant-time secrets, CSP, open-redirect guard |
+| [Migrations](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/migrations) | The real database security layer, in order |
+| [Attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/tests) | 8 suites, 416 tests |
 
 ---
 

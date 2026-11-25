@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <title id="t">GameArena defence in depth</title>
+  <desc id="d">The phone talks to the Next.js server over HTTPS with a strict CSP. The server sends validated input to Supabase using the player's own session. The database is the last line of defence: row level security on every table, column-level grants, CHECK constraints, triggers and hardened security-definer functions. An attacker using the public anon key directly is blocked by the same database rules, proven by 416 attack tests.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#f0f0ff"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#ff5c7a"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="470" rx="18" fill="#0c0c1d"/>
+
+  <!-- Phone -->
+  <rect x="30" y="70" width="170" height="110" rx="12" fill="#1e1e3f" stroke="#9196b8" stroke-width="1.5"/>
+  <text x="115" y="115" text-anchor="middle" fill="#f0f0ff" font-size="18" font-weight="700">Phone</text>
+  <text x="115" y="140" text-anchor="middle" fill="#9196b8" font-size="13">(browser / installed app)</text>
+
+  <!-- Server -->
+  <rect x="300" y="70" width="210" height="110" rx="12" fill="#1e1e3f" stroke="#9196b8" stroke-width="1.5"/>
+  <text x="405" y="112" text-anchor="middle" fill="#f0f0ff" font-size="18" font-weight="700">Next.js on Vercel</text>
+  <text x="405" y="137" text-anchor="middle" fill="#9196b8" font-size="13">Server Actions, zod validation,</text>
+  <text x="405" y="155" text-anchor="middle" fill="#9196b8" font-size="13">JWT verified every request</text>
+
+  <!-- Phone -> server -->
+  <line x1="200" y1="110" x2="296" y2="110" stroke="#f0f0ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="248" y="95" text-anchor="middle" fill="#f0f0ff" font-size="12">HTTPS + HSTS</text>
+  <text x="248" y="132" text-anchor="middle" fill="#9196b8" font-size="12">strict CSP</text>
+
+  <!-- Database (last line of defence) -->
+  <rect x="610" y="30" width="320" height="330" rx="14" fill="#151530" stroke="#ff00c8" stroke-width="2.5"/>
+  <text x="770" y="62" text-anchor="middle" fill="#ff00c8" font-size="13" font-weight="700" letter-spacing="1.5">LAST LINE OF DEFENCE</text>
+  <text x="770" y="88" text-anchor="middle" fill="#f0f0ff" font-size="19" font-weight="700">Supabase Postgres</text>
+  <g font-size="14" fill="#f0f0ff">
+    <rect x="635" y="104" width="270" height="40" rx="8" fill="#1e1e3f"/>
+    <text x="650" y="129">Row Level Security on every table</text>
+    <rect x="635" y="152" width="270" height="40" rx="8" fill="#1e1e3f"/>
+    <text x="650" y="177">Column-level grants</text>
+    <rect x="635" y="200" width="270" height="40" rx="8" fill="#1e1e3f"/>
+    <text x="650" y="225">CHECK constraints</text>
+    <rect x="635" y="248" width="270" height="40" rx="8" fill="#1e1e3f"/>
+    <text x="650" y="273">Triggers: rate limits, chat filter</text>
+    <rect x="635" y="296" width="270" height="48" rx="8" fill="#1e1e3f"/>
+    <text x="650" y="317">SECURITY DEFINER functions</text>
+    <text x="650" y="336" fill="#9196b8" font-size="12">search_path = '' , admin needs aal2</text>
+  </g>
+
+  <!-- Server -> database -->
+  <line x1="510" y1="125" x2="606" y2="125" stroke="#f0f0ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="558" y="110" text-anchor="middle" fill="#f0f0ff" font-size="12">validated input,</text>
+  <text x="558" y="146" text-anchor="middle" fill="#9196b8" font-size="12">player's own session</text>
+
+  <!-- Phone -> database (realtime + files) -->
+  <path d="M115 180 C 115 300, 420 300, 606 300" fill="none" stroke="#9196b8" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+  <text x="330" y="282" text-anchor="middle" fill="#9196b8" font-size="12">live chat (WSS), signed file links (1 h)</text>
+
+  <!-- Attacker -->
+  <rect x="300" y="380" width="250" height="64" rx="12" fill="#2a1020" stroke="#ff5c7a" stroke-width="1.5"/>
+  <text x="425" y="407" text-anchor="middle" fill="#ff5c7a" font-size="15" font-weight="700">Attacker with the public key</text>
+  <text x="425" y="428" text-anchor="middle" fill="#f0c0cc" font-size="12">skips the website, calls the API</text>
+  <path d="M550 412 C 590 412, 600 360, 640 352" fill="none" stroke="#ff5c7a" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-red)"/>
+  <text x="770" y="395" text-anchor="middle" fill="#ff5c7a" font-size="14" font-weight="700">Blocked by the same rules</text>
+  <text x="770" y="416" text-anchor="middle" fill="#f0f0ff" font-size="13">416 attack tests on every push</text>
+</svg>

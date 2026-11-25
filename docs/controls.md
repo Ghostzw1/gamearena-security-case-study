@@ -1,7 +1,7 @@
 # Controls catalogue
 
 Every security control in GameArena: **threat → control → where it lives → test that proves it.**
-"Test" names refer to suites in [`tests/`](../tests).
+"Test" names refer to suites in [`tests/`](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/tests).
 
 ## Identity and access control
 

@@ -22,12 +22,12 @@ files, notifications → SSRF, admin → account takeover.
 | Area | Evidence in this repo |
 | --- | --- |
 | Threat modelling (STRIDE) | [threat-model.md](threat-model.md) |
-| Access control design (RLS, least privilege, column grants) | [migrations/](../migrations), [controls.md](controls.md) |
+| Access control design (RLS, least privilege, column grants) | [migrations/](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/migrations), [controls.md](controls.md) |
 | Authentication and MFA | `mfa` tests, admin `aal2` design |
-| Secure file handling | `media` tests, [magic-bytes.ts](../snippets/magic-bytes.ts) |
-| SSRF prevention | `push` tests, [ssrf-allowlist.ts](../snippets/ssrf-allowlist.ts) |
-| Applied cryptography (HMAC, SHA-256, ES256/JWT, constant-time compare) | [snippets/](../snippets) |
-| Web security headers and CSP | [security-headers.ts](../snippets/security-headers.ts) |
+| Secure file handling | `media` tests, [magic-bytes.ts](https://github.com/Ghostzw1/gamearena-security-case-study/blob/main/snippets/magic-bytes.ts) |
+| SSRF prevention | `push` tests, [ssrf-allowlist.ts](https://github.com/Ghostzw1/gamearena-security-case-study/blob/main/snippets/ssrf-allowlist.ts) |
+| Applied cryptography (HMAC, SHA-256, ES256/JWT, constant-time compare) | [snippets/](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/snippets) |
+| Web security headers and CSP | [security-headers.ts](https://github.com/Ghostzw1/gamearena-security-case-study/blob/main/snippets/security-headers.ts) |
 | Security testing and automation (DevSecOps) | 416 attack tests, CI workflow |
 | Incident response and honest reporting | [incidents-and-lessons.md](incidents-and-lessons.md) |
 | Privacy by design | Empty push payloads, offline help bot, hashed IPs |

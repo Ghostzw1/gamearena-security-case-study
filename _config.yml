@@ -1,0 +1,10 @@
+# GitHub Pages site for the case study (built by GitHub, no extra tools).
+title: "GameArena: Security Case Study"
+description: "How I secured a live esports platform: threat model, OWASP mapping, database access control and 416 automated attack tests."
+theme: jekyll-theme-slate
+show_downloads: false
+
+exclude:
+  - node_modules
+  - package.json
+  - package-lock.json
