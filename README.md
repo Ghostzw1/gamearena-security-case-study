@@ -1,5 +1,7 @@
 # GameArena: Security Case Study
 
+[![Database attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml/badge.svg)](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml)
+
 **How I secured a real, live mobile esports platform, and proved it with 416 automated attack tests.**
 
 GameArena is a tournament platform for Call of Duty: Mobile players in Southern Africa: accounts, live chat,

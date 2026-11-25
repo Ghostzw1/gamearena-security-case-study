@@ -1,0 +1,23 @@
+name: Database attack tests
+
+on:
+  push:
+  pull_request:
+
+# Least privilege: this workflow only needs to read the code.
+permissions:
+  contents: read
+
+jobs:
+  attack-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run 416 attack tests against the real RLS policies
+        run: npm test
