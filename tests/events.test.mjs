@@ -199,5 +199,11 @@ await eq("players can't mark ideas as planned", () => as(P[0], async () => (awai
 await ok("admin marks it planned", () => as(ADMIN, () => q("update public.ideas set status = 'planned' where id = $1", [idea])));
 await eq("other players can't delete it", () => as(P[1], async () => (await q("delete from public.ideas where id = $1", [idea])).affectedRows), 0);
 
+// Renames show everywhere straight away: boards read the current name (2026-11-26).
+const topId = (await one("select user_id from public.monthly_player_board('tournament') where username = 'Player5'")).user_id;
+await ok("Player5 renames to a name with symbols", () => as(topId, () => q("update public.profiles set username = '꧁𝕽𝖊𝖆𝖕𝖊𝖗꧂' where id = $1", [topId])));
+await eq("the prize board shows the new name", () => as("anon", async () => (await one("select username from public.monthly_player_board('tournament') where user_id = $1", [topId])).username), "꧁𝕽𝖊𝖆𝖕𝖊𝖗꧂");
+await eq("the old name is gone from the board", () => as("anon", async () => (await q("select 1 from public.monthly_player_board('tournament') where username = 'Player5'")).rows.length), 0);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

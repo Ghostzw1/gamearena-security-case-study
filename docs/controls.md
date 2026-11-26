@@ -103,6 +103,19 @@ Every security control in GameArena: **threat → control → where it lives →
 | Prompt-spamming a phone | 5 payment starts per player per 10 minutes (`PT429`) | DB | payments |
 | Hammering "check payment" | One check per payment every 10 seconds, timer kept in the database (`claim_payment_check`) | DB | payments |
 | Junk sent to the public callback | Messages with a bad hash are dropped before the database; only signed ones are logged | Server | - |
+| Card numbers on our servers | "Pay by card" sends the player to the provider's own page; we never see, send or store card numbers | Provider | - |
+| Paying where not licensed | The database refuses payments unless the player's country is a licensed one | DB | payments |
+
+## Usernames and notifications (2026-11-26)
+
+| Threat | Control | Where | Test |
+| --- | --- | --- | --- |
+| Impersonation with look-alike names | Every name has a unique key: fancy letters back to plain (NFKD), look-alike Cyrillic/Greek/small-caps letters mapped to Latin, symbols removed | DB | usernames |
+| Hidden, text-direction and glitch characters in names | Refused by a database check and the server | DB + server | usernames |
+| Write floods | Per-player counters (`private.hit_limit`) on profile changes, settings, notification reads and room alerts | DB | usernames, notifications |
+| Notification text leaking through push services | Pushes are empty; the phone fetches its own messages (signed in, RLS) | Server + DB | notifications |
+| Abusing the scheduler endpoint | The unauthenticated knock only makes the server run a secret-gated, idempotent job at most once every 5 minutes | DB | notifications |
+| Room-alert spam | Only the creator, within 15 minutes, 3 an hour, only to players who opted in; room codes never in the alert | DB | notifications |
 | Disputes without evidence | Every callback and poll (status, amount, hash result, outcome, raw reply) is kept in `payment_events`, admins only | DB | payments |
 | Handling card numbers | The app never sees or stores card numbers (PCI DSS scope reduction); mobile money is approved on the player's own phone | Provider | - |
 | Operating illegally | Licensed per country: Zimbabwe only; test mode until the live account and the publisher's event licence | Config | - |

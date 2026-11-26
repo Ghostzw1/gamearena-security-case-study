@@ -67,6 +67,14 @@ await ok("A registers for the paid tournament", () => as(A, () => q("insert into
 await eq("a paid-tournament entry waits for its payment", () => as(A, async () => (await one("select status from public.tournament_entries where tournament_id = $1 and user_id = $2", [CUP, A])).status), "pending");
 await ok("A registers for free Warzone too", () => as(A, () => q("insert into public.tournament_entries (tournament_id) values ($1)", [S2])));
 
+// Paid entry is licensed in Zimbabwe only: A and B live in Zimbabwe, C in South Africa.
+for (const u of [A, B]) await as(u, () => q("update public.profiles set country = 'ZW' where id = $1", [u]));
+await as(C, () => q("update public.profiles set country = 'ZA' where id = $1", [C]));
+await ok("C (South Africa) registers for the paid tournament", () => as(C, () => q("insert into public.tournament_entries (tournament_id) values ($1)", [CUP])));
+await err("C can't pay: paid entry isn't open in South Africa", "PT409", () => as(C, () => q("select * from public.start_entry_payment($1, 'web', true)", [CUP])));
+await ok("D (no country set) registers too", () => as(D, () => q("insert into public.tournament_entries (tournament_id) values ($1)", [CUP])));
+await err("D can't pay until they set Zimbabwe as their country", "PT409", () => as(D, () => q("select * from public.start_entry_payment($1, 'ecocash', true)", [CUP])));
+
 // --- Starting a payment (player).
 await err("visitors can't start a payment", "42501", () => as("anon", () => q("select * from public.start_entry_payment($1, 'ecocash', true)", [CUP])));
 await err("B can't pay without registering", "PT409", () => as(B, () => q("select * from public.start_entry_payment($1, 'ecocash', true)", [CUP])));
@@ -74,10 +82,11 @@ await err("community tournaments are free: nothing to pay", "PT409", () => as(A,
 await err("unknown payment method refused", "22023", () => as(A, () => q("select * from public.start_entry_payment($1, 'bitcoin', true)", [CUP])));
 const pay = await ok("A starts an EcoCash payment", () => as(A, () => one("select * from public.start_entry_payment($1, 'ecocash', true)", [CUP])));
 await eq("the amount comes from the tournament ($2.00), not the browser", () => pay.amount_minor, 200);
+await eq("a card payment (Paynow's own card page) can be started too", () => as(A, async () => (await one("select amount_minor from public.start_entry_payment($1, 'web', true)", [CUP])).amount_minor), 200);
 const REF = pay?.payment_reference;
 await err("A can't write payments directly", "42501", () => as(A, () => q("insert into public.payments (reference, tournament_id, user_id, amount_minor, method) values ('GA-AAAAAAAAAA', $1, $2, 1, 'ecocash')", [CUP, A])));
 await err("A can't mark their own payment paid", "42501", () => as(A, () => q("update public.payments set status = 'paid' where reference = $1", [REF])));
-await eq("A sees their own payment", () => as(A, async () => (await q("select reference from public.payments")).rows.length), 1);
+await eq("A sees their own 2 payments (EcoCash + card), nobody else's", () => as(A, async () => (await q("select reference from public.payments")).rows.length), 2);
 await eq("B sees none of A's payments", () => as(B, async () => (await q("select reference from public.payments")).rows.length), 0);
 
 // --- Server steps (need PAYMENTS_SECRET).

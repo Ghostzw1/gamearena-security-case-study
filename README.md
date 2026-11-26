@@ -2,7 +2,7 @@
 
 [![Database attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml/badge.svg)](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml)
 
-**How I secured a real, live mobile esports platform, and proved it with 468 automated attack tests.**
+**How I secured a real, live mobile esports platform, and proved it with 548 automated attack tests.**
 
 📖 Read it as a website: **[ghostzw1.github.io/gamearena-security-case-study](https://ghostzw1.github.io/gamearena-security-case-study/)** ·
 💻 Code and tests: **[GitHub repository](https://github.com/Ghostzw1/gamearena-security-case-study)**
@@ -35,20 +35,22 @@ reading other people's data, faking ownership, skipping payment rules, uploading
 abusing admin functions without two-step login, and so on.
 
 ```
-┌─────────┬───────────────┬──────┬──────┐
-│ (index) │ suite         │ pass │ fail │
-├─────────┼───────────────┼──────┼──────┤
-│ 0       │ 'admin'       │ 25   │ 0    │
-│ 1       │ 'chat'        │ 82   │ 0    │
-│ 2       │ 'events'      │ 82   │ 0    │
-│ 3       │ 'media'       │ 24   │ 0    │
-│ 4       │ 'mfa'         │ 16   │ 0    │
-│ 5       │ 'payments'    │ 39   │ 0    │
-│ 6       │ 'push'        │ 29   │ 0    │
-│ 7       │ 'regions'     │ 27   │ 0    │
-│ 8       │ 'tournaments' │ 144  │ 0    │
-└─────────┴───────────────┴──────┴──────┘
-468 attacks blocked / behaviours confirmed, 0 failed
+┌─────────┬─────────────────┬──────┬──────┐
+│ (index) │ suite           │ pass │ fail │
+├─────────┼─────────────────┼──────┼──────┤
+│ 0       │ 'admin'         │ 25   │ 0    │
+│ 1       │ 'chat'          │ 82   │ 0    │
+│ 2       │ 'events'        │ 85   │ 0    │
+│ 3       │ 'media'         │ 24   │ 0    │
+│ 4       │ 'mfa'           │ 16   │ 0    │
+│ 5       │ 'notifications' │ 37   │ 0    │
+│ 6       │ 'payments'      │ 44   │ 0    │
+│ 7       │ 'push'          │ 29   │ 0    │
+│ 8       │ 'regions'       │ 27   │ 0    │
+│ 9       │ 'tournaments'   │ 144  │ 0    │
+│ 10      │ 'usernames'     │ 35   │ 0    │
+└─────────┴─────────────────┴──────┴──────┘
+548 attacks blocked / behaviours confirmed, 0 failed
 ```
 
 The same tests run in GitHub Actions on every push (`.github/workflows/security-tests.yml`, read-only
@@ -99,7 +101,7 @@ Full list: **[docs/controls.md](docs/controls.md)**.
 | [What this taught me](docs/career-skills.md) | Skills, mapping to security roles and certifications, next steps |
 | [Code excerpts](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/snippets) | Magic bytes, SSRF allowlist, VAPID signing, constant-time secrets, CSP, open-redirect guard |
 | [Migrations](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/migrations) | The real database security layer, in order |
-| [Attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/tests) | 9 suites, 468 tests |
+| [Attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/tests) | 11 suites, 548 tests |
 
 ---
 

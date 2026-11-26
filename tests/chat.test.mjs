@@ -114,7 +114,7 @@ await expectEq("username now taken (any case)", () => as("anon", async () => (aw
 await err("B cannot take 'ghost' (case-insensitive unique)", "23505", () => as(B, () => profile("ghost")));
 await err("B cannot create a profile with A's id", "42501", () => as(B, () => q("insert into public.profiles (id, username, avatar_id) values ($1, 'Fake', 'a')", [A])));
 await err("bad username rejected", "23514", () => as(B, () => profile("bad name!")));
-await err("look-alike unicode username rejected", "23514", () => as(B, () => profile("Ghоst"))); // Cyrillic o
+await err("look-alike of a taken name rejected", "23505", () => as(B, () => profile("Ghоst"))); // Cyrillic o
 await ok("B creates own profile", () => as(B, () => profile("Viper")));
 await ok("C creates own profile", () => as(C, () => profile("Cobra")));
 await ok("ADMIN creates profile", () => as(ADMIN, () => profile("Admin")));
