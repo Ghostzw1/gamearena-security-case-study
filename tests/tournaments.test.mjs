@@ -62,7 +62,8 @@ const S2 = (await one("select id from public.tournaments where slug = 'warzone-u
 
 // --- Visitors -------------------------------------------------------------
 await eq("visitors see both Warzone Unleashed seasons", () => as("anon", async () => (await q("select season, status from public.tournaments where name = 'Warzone Unleashed' order by season")).rows), [{ season: 1, status: "completed" }, { season: 2, status: "open" }]);
-await eq("Season 2 prizes are $100 / $50 / $30", () => as("anon", () => one("select prize_1_usd_cents p1, prize_2_usd_cents p2, prize_3_usd_cents p3 from public.tournaments where id = $1", [S2])), { p1: 10000, p2: 5000, p3: 3000 });
+await eq("Warzone Unleashed S2 has no prizes (owner, 2026-11-26)", () => as("anon", () => one("select prize_1_usd_cents p1, prize_2_usd_cents p2, prize_3_usd_cents p3 from public.tournaments where id = $1", [S2])), { p1: 0, p2: 0, p3: 0 });
+await eq("prize guard is switched back on after the no-prizes migration", () => one("select tgenabled from pg_trigger where tgname = 'tournaments_guard_update'"), { tgenabled: "O" });
 await err("visitors can't see who entered", "42501", () => as("anon", () => q("select * from public.tournament_entries")));
 await err("visitors can't register", "42501", () => as("anon", () => q("insert into public.tournament_entries (tournament_id) values ($1)", [S2])));
 await err("visitors can't create tournaments", "42501", () => as("anon", () => q("insert into public.tournaments (name) values ('Hack')")));
@@ -237,6 +238,22 @@ await eq("A only sees their own membership", () => as(A, async () => (await q("s
 await eq("admin reads every country chat", () => as(ADMIN, async () => (await q("select body from public.chat_messages where channel_id in ($1, $2) order by body", [zw, za])).rows.map((r) => r.body)), ["Howzit", "Mhoro vese"]);
 await err("visitors can't join country chats", "42501", () => as("anon", () => q("select public.join_country_chat('codm-zw')")));
 await eq("community chat still open to all", () => as(B, async () => (await one("select count(*)::int n from public.chat_channels where slug = 'codm-community'")).n), 1);
+
+// --- Staff invites by email (2026-11-26) -------------------------------------
+const INVITED = id("e1"), IMPOSTOR = id("e2");
+await db.query("insert into auth.users (id, email) values ($1, 'Host.Person@Example.com'), ($2, 'someone@example.com')", [INVITED, IMPOSTOR]);
+await ok("admin invites a host by email", () => as(ADMIN, () => q("insert into public.staff_invites (tournament_id, email, role) values ($1, 'host.person@example.com', 'host')", [S2])));
+await err("invite emails must be lowercase and valid", "23514", () => as(ADMIN, () => q("insert into public.staff_invites (tournament_id, email) values ($1, 'Not An Email')", [S2])));
+await err("a player can't create invites", "42501", () => as(B, () => q("insert into public.staff_invites (tournament_id, email) values ($1, 'me@example.com')", [S2])));
+await eq("a player can't see invites (emails stay private)", () => as(B, async () => (await q("select * from public.staff_invites")).rows.length), 0);
+await err("visitors can't read invites", "42501", () => as("anon", () => q("select * from public.staff_invites")));
+await eq("admin sees the invite", () => as(ADMIN, async () => (await q("select email from public.staff_invites")).rows.map((r) => r.email)), ["host.person@example.com"]);
+await ok("someone else signs up: no staff role", () => as(IMPOSTOR, () => q("insert into public.profiles (username, avatar_id) values ('someone_else', 'op-recon-m')")));
+await eq("…and the invite is still waiting", () => as(ADMIN, async () => (await q("select count(*)::int n from public.staff_invites")).rows[0].n), 1);
+await ok("the invited person creates their profile", () => as(INVITED, () => q("insert into public.profiles (username, avatar_id) values ('invited_host', 'op-recon-m')")));
+await eq("…and is now host of the event (email matched, any case)", () => as(ADMIN, async () => (await q("select role from public.tournament_staff where tournament_id = $1 and user_id = $2", [S2, INVITED])).rows.map((r) => r.role)), ["host"]);
+await eq("…and the invite is used up", () => as(ADMIN, async () => (await q("select count(*)::int n from public.staff_invites")).rows[0].n), 0);
+await eq("impostor has no staff role", () => as(ADMIN, async () => (await q("select count(*)::int n from public.tournament_staff where user_id = $1", [IMPOSTOR])).rows[0].n), 0);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
