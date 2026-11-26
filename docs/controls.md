@@ -101,6 +101,8 @@ Every security control in GameArena: **threat → control → where it lives →
 | Paying for a free event | Community tournaments and scrims refuse payments (`free_event`) | DB | payments |
 | SSRF through a poll URL | Poll URLs must be `https://www.paynow.co.zw/…` (code check + table constraint) | Server + DB | payments |
 | Prompt-spamming a phone | 5 payment starts per player per 10 minutes (`PT429`) | DB | payments |
+| Hammering "check payment" | One check per payment every 10 seconds, timer kept in the database (`claim_payment_check`) | DB | payments |
+| Junk sent to the public callback | Messages with a bad hash are dropped before the database; only signed ones are logged | Server | - |
 | Disputes without evidence | Every callback and poll (status, amount, hash result, outcome, raw reply) is kept in `payment_events`, admins only | DB | payments |
 | Handling card numbers | The app never sees or stores card numbers (PCI DSS scope reduction); mobile money is approved on the player's own phone | Provider | - |
 | Operating illegally | Licensed per country: Zimbabwe only; test mode until the live account and the publisher's event licence | Config | - |

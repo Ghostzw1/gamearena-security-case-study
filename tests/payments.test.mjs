@@ -111,5 +111,15 @@ await ok("B registers for the paid tournament", () => as(B, () => q("insert into
 for (let i = 0; i < 5; i++) await as(B, () => q("select * from public.start_entry_payment($1, 'onemoney', true)", [CUP]));
 await err("6th payment attempt in 10 minutes is refused", "PT429", () => as(B, () => q("select * from public.start_entry_payment($1, 'onemoney', true)", [CUP])));
 
+// --- "I've paid, check": one check per payment every 10 seconds (hardening, 2026-11-26).
+const PAY_A = pay?.payment_id;
+await err("visitors can't check a payment", "42501", () => as("anon", () => q("select public.claim_payment_check($1)", [PAY_A])));
+await err("B can't check A's payment", "PT404", () => as(B, () => q("select public.claim_payment_check($1)", [PAY_A])));
+await ok("A checks their own payment", () => as(A, () => q("select public.claim_payment_check($1)", [PAY_A])));
+await err("A checking again straight away is refused", "PT429", () => as(A, () => q("select public.claim_payment_check($1)", [PAY_A])));
+await err("A can't reset the check timer", "42501", () => as(A, () => q("update public.payments set last_checked_at = null where id = $1", [PAY_A])));
+await q("update public.payments set last_checked_at = now() - interval '11 seconds' where id = $1", [PAY_A]);
+await ok("after 10 seconds A can check again", () => as(A, () => q("select public.claim_payment_check($1)", [PAY_A])));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
