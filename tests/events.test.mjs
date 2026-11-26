@@ -118,7 +118,7 @@ await err("report spam is capped at 10 per event", "PT429", () => as(P[0], async
 // --- Official GameArena tournament: live pool + top-10 rule -----------------------
 const cup = await as(ADMIN, async () => (await one("insert into public.tournaments (kind, name, format, entry_fee_usd_cents, min_players, requires_approval) values ('tournament', 'GameArena Cup', 'duo', 200, 20, false) returning id")).id);
 for (const p of P.slice(4, 12)) await as(p, () => q("insert into public.tournament_entries (tournament_id) values ($1)", [cup]));
-await eq("live prize pool: 8 entries × $2 = $16 → $8 / $4 / $2.40", () => as("anon", () => one("select players, pool_usd_cents, prize_1, prize_2, prize_3, min_players from public.prize_pool($1)", [cup])), { players: 8, pool_usd_cents: 1600, prize_1: 800, prize_2: 400, prize_3: 240, min_players: 20 });
+await eq("unpaid entries don't count: 8 registrations, none paid yet → $0 (paid tournaments approve only after payment)", () => as("anon", () => one("select players, pool_usd_cents, prize_1, prize_2, prize_3, min_players from public.prize_pool($1)", [cup])), { players: 0, pool_usd_cents: 0, prize_1: 0, prize_2: 0, prize_3: 0, min_players: 20 });
 await eq("no live pool for community events", () => as("anon", async () => (await q("select * from public.prize_pool($1)", [S2])).rows.length), 0);
 // Make Player5 and Player6 this month's top 2 by winning a finished cup.
 await as(ADMIN, () => q("update public.tournaments set status = 'live' where id = $1", [cup]));

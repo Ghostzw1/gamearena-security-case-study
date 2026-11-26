@@ -4,7 +4,7 @@
 
 | Risk | How GameArena addresses it |
 | --- | --- |
-| **A01 Broken Access Control** | RLS on every table, column-level grants, ownership from `auth.uid()`, approval-gated data, admin requires `aal2`, private storage with per-message access. 416 tests try to break it. |
+| **A01 Broken Access Control** | RLS on every table, column-level grants, ownership from `auth.uid()`, approval-gated data, admin requires `aal2`, private storage with per-message access. 462 tests try to break it. |
 | **A02 Cryptographic Failures** | HTTPS + HSTS; IPs as HMAC-SHA256; cron secret stored only as SHA-256; VAPID ES256 signing with built-in crypto; signed, expiring file links. |
 | **A03 Injection** | Parameterised queries through PostgREST/supabase-js (no string-built SQL); SQL functions with `search_path = ''`; zod + CHECK constraints; hidden-character filters; CSP against script injection. |
 | **A04 Insecure Design** | Threat model per feature; "database is the last line of defence"; payment design trusts only verified provider callbacks; results cross-checked by role. |

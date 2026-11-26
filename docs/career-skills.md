@@ -28,7 +28,7 @@ files, notifications → SSRF, admin → account takeover.
 | SSRF prevention | `push` tests, [ssrf-allowlist.ts](https://github.com/Ghostzw1/gamearena-security-case-study/blob/main/snippets/ssrf-allowlist.ts) |
 | Applied cryptography (HMAC, SHA-256, ES256/JWT, constant-time compare) | [snippets/](https://github.com/Ghostzw1/gamearena-security-case-study/tree/main/snippets) |
 | Web security headers and CSP | [security-headers.ts](https://github.com/Ghostzw1/gamearena-security-case-study/blob/main/snippets/security-headers.ts) |
-| Security testing and automation (DevSecOps) | 416 attack tests, CI workflow |
+| Security testing and automation (DevSecOps) | 462 attack tests, CI workflow |
 | Incident response and honest reporting | [incidents-and-lessons.md](incidents-and-lessons.md) |
 | Privacy by design | Empty push payloads, offline help bot, hashed IPs |
 | Standards | [owasp-mapping.md](owasp-mapping.md), PCI DSS scope reduction |
@@ -44,7 +44,7 @@ files, notifications → SSRF, admin → account takeover.
 ## Interview stories (STAR)
 
 - **Situation:** a public API key meant anyone could query the database. **Task:** keep 27 tables of
-  player data private. **Action:** RLS on every table, column grants, ownership defaults, and 416
+  player data private. **Action:** RLS on every table, column grants, ownership defaults, and 462
   attack tests. **Result:** every known attack path blocked and re-tested on every push.
 - **Situation:** an admin password could be phished. **Action:** made admin rights depend on a second
   factor at the database level (`aal2`), not just in the UI. **Result:** a stolen password gives no

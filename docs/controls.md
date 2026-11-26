@@ -91,11 +91,16 @@ Every security control in GameArena: **threat → control → where it lives →
 | Fingerprinting | `X-Powered-By` removed |
 | CSRF on Server Actions | Next.js Origin check; 64 KB body limit |
 
-## Payments (designed, not yet live)
+## Payments (Paynow EcoCash/OneMoney, built 2026-11-26, test mode)
 
-| Threat | Control |
-| --- | --- |
-| Faking "paid" from the browser | An entry counts as paid only after the server gets the provider's callback, **verifies its hash** with the integration key, **and** polls the provider to confirm status and amount |
-| Handling card numbers | The app never sees or stores card numbers (PCI DSS scope reduction); payouts go to a bank account set in the provider's dashboard |
-| Price tampering | The server recalculates every amount; the phone only displays quotes |
-| Operating illegally | Real money disabled until a gaming licence is granted (test mode only) |
+| Threat | Control | Where | Test |
+| --- | --- | --- | --- |
+| Faking "paid" from the browser | `payments` has RLS with no client writes; only two `SECURITY DEFINER` functions change it, and both need a server-only secret (only its SHA-256 is stored) | DB | payments |
+| Forged or replayed callbacks | The callback's SHA-512 hash is checked (constant-time) and logged as `unconfirmed`; only our own poll of the provider, with a valid hash, status `Paid` **and** the exact amount, approves the entry | Server + DB | payments |
+| Price tampering | The amount is read from the tournament row; the phone sends only the event, method and phone number | DB | payments |
+| Paying for a free event | Community tournaments and scrims refuse payments (`free_event`) | DB | payments |
+| SSRF through a poll URL | Poll URLs must be `https://www.paynow.co.zw/…` (code check + table constraint) | Server + DB | payments |
+| Prompt-spamming a phone | 5 payment starts per player per 10 minutes (`PT429`) | DB | payments |
+| Disputes without evidence | Every callback and poll (status, amount, hash result, outcome, raw reply) is kept in `payment_events`, admins only | DB | payments |
+| Handling card numbers | The app never sees or stores card numbers (PCI DSS scope reduction); mobile money is approved on the player's own phone | Provider | - |
+| Operating illegally | Licensed per country: Zimbabwe only; test mode until the live account and the publisher's event licence | Config | - |
