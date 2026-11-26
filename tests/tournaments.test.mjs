@@ -74,7 +74,7 @@ await ok("visitors can read player counts", () => as("anon", () => q("select * f
 
 // --- Creating events ------------------------------------------------------
 await err("players can't create prize tournaments", "42501", () => as(A, () => q("insert into public.tournaments (kind, name, entry_fee_usd_cents) values ('tournament', 'Fake Cup', 500)")));
-await err("rooms can't have prizes", "23514", () => as(A, () => q("insert into public.tournaments (name, prize_1_usd_cents) values ('Free money', 1000)")));
+await err("rooms can't have prizes (admins only, on insert too)", "42501", () => as(A, () => q("insert into public.tournaments (name, prize_1_usd_cents) values ('Free money', 1000)")));
 const room = await ok("player creates a free room", () => as(A, async () => (await one("insert into public.tournaments (name, format) values ('Friday Scrims', 'duo') returning id")).id));
 await eq("room creator is its host", () => as(A, async () => (await q("select role from public.tournament_staff where tournament_id = $1 and user_id = $2", [room, A])).rows), [{ role: "host" }]);
 await ok("second room", () => as(A, () => q("insert into public.tournaments (name) values ('Room two')")));

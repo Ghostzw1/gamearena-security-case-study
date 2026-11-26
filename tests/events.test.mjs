@@ -63,7 +63,7 @@ await ok("admin changes a setting", () => as(ADMIN, () => q("update public.app_c
 await err("nobody can add a second settings row", "42501", () => as(ADMIN, () => q("insert into public.app_config (id) values (true)")));
 
 // --- Sponsored community event ---------------------------------------------
-await eq("Warzone Unleashed is a sponsored community event", () => as("anon", () => one("select kind, sponsor_name, entry_fee_usd_cents from public.tournaments where id = $1", [S2])), { kind: "community", sponsor_name: "GameArena", entry_fee_usd_cents: 0 });
+await eq("Warzone Unleashed is a free community event, sponsorship pending (owner, 2026-11-26)", () => as("anon", () => one("select kind, sponsor_name, sponsor_status, entry_fee_usd_cents from public.tournaments where id = $1", [S2])), { kind: "community", sponsor_name: null, sponsor_status: "pending", entry_fee_usd_cents: 0 });
 await err("community events can't take entry fees", "23514", () => as(ADMIN, () => q("update public.tournaments set entry_fee_usd_cents = 200 where id = $1", [S2])));
 await ok("admin gives MrsHavoc the event", () => as(ADMIN, () => q("select public.add_tournament_staff($1, 'MrsHavoc', 'host')", [S2])));
 await err("host can't change who sponsors it", "42501", () => as(HAVOC, () => q("update public.tournaments set sponsor_name = 'Me' where id = $1", [S2])));
