@@ -181,6 +181,7 @@ for (const u of [A, B, C]) await call(ADMIN, "select public.set_entry_status($1,
 await call(ADMIN, "update public.tournaments set status = 'live' where id = $1", [T.id]);
 for (const [u, place, kills] of [[A, 1, 5], [B, 2, 3], [C, 3, 0]]) await call(ADMIN, "insert into public.match_results (tournament_id, match_no, player_id, placement, kills) values ($1, 1, $2, $3, $4)", [T.id, u, place, kills]);
 await call(ADMIN, "update public.tournaments set status = 'completed' where id = $1", [T.id]);
+await call(ADMIN, "select public.lock_results($1)", [T.id]);
 const SH = await ok("Alpha shares their verified Champion badge", () => val(A, "select public.share_achievement('champion')"));
 await eq("…it points at the tournament that earned it", () => as(F, () => one("select kind, achievement_code, tournament_slug from public.post_detail($1)", [SH])), { kind: "achievement", achievement_code: "champion", tournament_slug: T.slug });
 await err("…once", "PT409", () => val(A, "select public.share_achievement('champion')"));

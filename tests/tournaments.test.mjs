@@ -197,6 +197,7 @@ await ok("A enters the room for their clan", () => as(A, () => q("select public.
 await ok("room host starts the room", () => as(A, () => q("update public.tournaments set status = 'live' where id = $1", [room])));
 const packSquad = (await one("select id from public.squads where name = 'Wolf Pack'")).id;
 await ok("room host reports the clan squad", () => report(A, room, 1, packSquad, 1, 7));
+await ok("the room ends and an admin locks the results (boards count final results only)", async () => { await as(A, () => q("update public.tournaments set status = 'completed' where id = $1", [room])); await as(ADMIN, () => q("select public.lock_results($1)", [room])); });
 await eq("clan shows on the scrims clan board", () => as("anon", async () => (await q("select name, points from public.monthly_clan_board('scrim')")).rows), [{ name: "Wolf Pack", points: 22 }]);
 await eq("clan isn't on the prize clan board", () => as("anon", async () => (await q("select * from public.monthly_clan_board('tournament')")).rows.length), 0);
 await eq("scrim points don't leak into the prize board", () => as("anon", async () => (await q("select * from public.monthly_player_board('tournament')")).rows.length), 0);

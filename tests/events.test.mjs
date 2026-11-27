@@ -134,6 +134,7 @@ await as(ADMIN, () => q("update public.tournaments set status = 'live' where id 
 const top = (await one("select id from public.squads where name = 'Top Dogs'")).id;
 const second = (await one("select id from public.squads where name = 'Second Best'")).id;
 await as(ADMIN, () => q("insert into public.match_results (tournament_id, match_no, squad_id, placement, kills) values ($1, 1, $2, 1, 10), ($1, 1, $3, 2, 5)", [cup, top, second]));
+await ok("the cup ends and an admin locks the results (boards count final results only)", async () => { await as(ADMIN, () => q("update public.tournaments set status = 'completed' where id = $1", [cup])); await as(ADMIN, () => q("select public.lock_results($1)", [cup])); });
 await eq("cup results go on the GameArena prize board", () => as("anon", async () => (await q("select username from public.monthly_player_board('tournament') order by points desc, username")).rows.map((r) => r.username).slice(0, 4)), ["Player5", "Player7", "Player6", "Player8"]);
 const cup2 = await as(ADMIN, async () => (await one("insert into public.tournaments (kind, name, format, entry_fee_usd_cents, requires_approval) values ('tournament', 'GameArena Cup 2', 'duo', 200, false) returning id")).id);
 await as(P[4], () => q("insert into public.tournament_entries (tournament_id) values ($1)", [cup2]));

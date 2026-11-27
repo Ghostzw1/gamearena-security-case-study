@@ -2,7 +2,7 @@
 
 [![Database attack tests](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml/badge.svg)](https://github.com/Ghostzw1/gamearena-security-case-study/actions/workflows/security-tests.yml)
 
-**How I secured a real, live mobile esports platform, and proved it with 1,133 automated attack tests.**
+**How I secured a real, live mobile esports platform, and proved it with 1,226 automated attack tests.**
 
 📖 Read it as a website: **[ghostzw1.github.io/gamearena-security-case-study](https://ghostzw1.github.io/gamearena-security-case-study/)** ·
 💻 Code and tests: **[GitHub repository](https://github.com/Ghostzw1/gamearena-security-case-study)**

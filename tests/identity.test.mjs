@@ -74,6 +74,8 @@ await host(2, A, 2, 2); await host(2, B, 1, 1); await host(2, C, 4, 1);
 // D only claims a result: never counts.
 await as(D, () => q("insert into public.match_results (tournament_id, match_no, player_id, placement, kills) values ($1, 1, $2, 1, 20)", [T, D]));
 await as(ADMIN, () => q("update public.tournaments set status = 'completed' where id = $1", [T]));
+// Stage 5: results count once they're final (an admin locks them here).
+await as(ADMIN, () => q("select public.lock_results($1)", [T]));
 
 // --- Profile cards and privacy.
 const card = (who, key) => as(who, async () => (await q("select limited, bio, username from public.player_card($1)", [key])).rows);
