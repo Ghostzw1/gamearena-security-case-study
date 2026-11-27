@@ -162,7 +162,7 @@ await err("no links in report details", "PT422", () => report(E, "player", { tar
 await ok("Alpha reports Bravo's clan", () => report(A, "clan", { target: clan, reason: "impersonation" }));
 const ideaId = (await one("select id from public.ideas where user_id = $1", [D])).id;
 await ok("Alpha reports Delta's idea", () => report(A, "idea", { ref: ideaId, reason: "spam" }));
-const SP = await as(D, async () => (await one("select public.create_squad_post('br', 'ZW', 'any', 2, '{}', null, 'Selling accounts cheap', 7) id")).id);
+const SP = await as(D, async () => (await one("select public.create_squad_post('br', 'ZW', 'any', 2, 'now', null, 'in_game', 'Selling accounts cheap') id")).id);
 await ok("Alpha reports Delta's squad post as a scam", () => report(A, "squad_post", { ref: SP, reason: "scam" }));
 await eq("reporters see only their own reports", () => as(C, async () => (await q("select kind from public.content_reports")).rows), [{ kind: "player" }]);
 await eq("the queue groups reports by what was reported", () => as(ADMIN, async () => {
@@ -182,9 +182,9 @@ await eq("…every decision is in the audit log", () => audits("content_report.r
 
 // ===== A ban is a community ban =====
 await err("banned Delta can't send friend requests", "42501", () => as(D, () => q("select public.send_friend_request($1)", [A])));
-const AP = await as(A, async () => (await one("select public.create_squad_post('mp', 'ZW', 'any', 1, '{}', null, null, 3) id")).id);
+const AP = await as(A, async () => (await one("select public.create_squad_post('mp', 'ZW', 'any', 1, 'now', null, 'in_game', null) id")).id);
 await err("…or ask to join squads", "42501", () => as(D, () => q("select public.request_to_join($1, null)", [AP])));
-await err("…or post squads", "42501", () => as(D, () => q("select public.create_squad_post('br', 'ZW', 'any', 1, '{}', null, null, 3)")));
+await err("…or post squads", "42501", () => as(D, () => q("select public.create_squad_post('br', 'ZW', 'any', 1, 'now', null, 'in_game', null)")));
 await err("…or post ideas", "42501", () => as(D, () => q("insert into public.ideas (body) values ('Let me back in please')")));
 await err("…or chat", "42501", async () => { const ch = (await one("select id from public.chat_channels where slug = 'codm-community'")).id; await as(D, () => q("insert into public.chat_messages (channel_id, body) values ($1, 'hello')", [ch])); });
 

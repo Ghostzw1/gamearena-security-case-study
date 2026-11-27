@@ -59,26 +59,25 @@ const audits = async (action) => (await one("select count(*)::int n from public.
 const RLO = String.fromCharCode(0x202e);
 const post = (who, o = {}) => as(who, async () => (await one(
   "select public.create_squad_post($1, $2, $3, $4, $5, $6, $7, $8) id",
-  [o.mode ?? "br", o.region ?? "ZW", o.rank ?? "legendary", o.needed ?? 2, o.roles ?? ["sniper", "support"], o.when ?? "Evenings after 7", o.body ?? "Need 2 for ranked BR", o.days ?? 7],
+  [o.mode ?? "br", o.region ?? "ZW", o.rank ?? "legendary", o.needed ?? 2, o.when ?? "now", o.at ?? null, o.voice ?? "in_game", o.body ?? "Need 2 for ranked BR"],
 )).id);
 const board = (who) => as(who, async () => (await q("select * from public.squad_board()")).rows);
 
-// --- Squad finder: posting.
+// --- Squad finder: posting (v4 rules since Stage 3: one open post per game, 2 h after the start).
 await err("players without a profile can't post", "42501", () => post(NOPROFILE));
-await err("visitors can't post", "42501", () => as("anon", () => q("select public.create_squad_post('br', 'ZW', 'any', 2, '{}', null, null, 7)")));
+await err("visitors can't post", "42501", () => as("anon", () => q("select public.create_squad_post('br', 'ZW', 'any', 2, 'now', null, 'in_game', null)")));
 const P1 = await ok("Alpha posts: 2 players for ranked BR", () => post(A));
-await err("modes are BR or MP only", "23514", () => post(E, { mode: "zombies" }));
+await err("unknown modes are refused", "23514", () => post(E, { mode: "zombies" }));
 await err("a squad needs 1–4 players", "23514", () => post(E, { needed: 5 }));
-await err("only known roles", "23514", () => post(E, { roles: ["hacker"] }));
+await err("unknown voice options are refused", "23514", () => post(E, { voice: "telepathy" }));
 await err("unknown regions are refused", "23514", () => post(E, { region: "US" }));
 await err("hidden direction characters are refused", "23514", () => post(E, { body: "join" + RLO + "us" }));
-const PF = await ok("Foxtrot asks for a 60-day post", () => post(F, { days: 60 }));
-await eq("…it's capped at 14 days", async () => (await one("select expires_at <= created_at + interval '14 days' and expires_at > now() + interval '13 days' x from public.squad_posts where id = $1", [PF])).x, true);
-const P2 = await ok("Alpha posts a second one (MP)", () => post(A, { mode: "mp", roles: ["objective"] }));
-await err("…a third open post is refused (2 at a time)", "PT429", () => post(A));
+const PF = await ok("Foxtrot posts for tonight", () => post(F, { when: "tonight" }));
+await eq("…it ends 2 hours after it starts", async () => (await one("select expires_at = starts_at + interval '2 hours' x from public.squad_posts where id = $1", [PF])).x, true);
+await err("Alpha can't open a second post in the same game", "PT409", () => post(A, { mode: "mp" }));
 await err("players can't write posts directly", "42501", () => as(A, () => q("insert into public.squad_posts (mode, region, needed) values ('br', 'ZW', 1)")));
 await err("players can't edit posts directly", "42501", () => as(A, () => q("update public.squad_posts set needed = 4 where id = $1", [P1])));
-await eq("Bravo sees Alpha's two posts and Foxtrot's", async () => (await board(B)).length, 3);
+await eq("Bravo sees Alpha's post and Foxtrot's", async () => (await board(B)).length, 2);
 await err("visitors can't read the board", "42501", () => as("anon", () => q("select * from public.squad_board()")));
 await eq("the board shows the author's name and key", async () => { const r = (await board(B)).find((p) => p.id === P1); return [r.author, r.author_key, r.mine, r.pending]; }, ["Alpha", "alpha", false, 0]);
 
@@ -95,13 +94,17 @@ await eq("…not even by reading the table", () => as(C, async () => (await q("s
 await err("Charlie can't answer for Alpha", "42501", () => as(C, () => q("select public.answer_join_request($1, $2, true)", [P1, B])));
 await err("players can't accept themselves", "42501", () => as(B, () => q("update public.squad_post_requests set status = 'accepted'")));
 await ok("Alpha accepts Bravo", () => as(A, () => q("select public.answer_join_request($1, $2, true)", [P1, B])));
-await eq("…they're friends now", async () => (await one("select status from public.friendships where low = least($1::uuid, $2::uuid) and high = greatest($1::uuid, $2::uuid)", [A, B])).status, "accepted");
+await eq("…Bravo is in the squad chat (and they're not made friends)", async () => [
+  (await one("select count(*)::int n from public.group_members g join public.squad_posts s on s.chat_id = g.channel_id where s.id = $1 and g.user_id = $2", [P1, B])).n,
+  (await one("select count(*)::int n from public.friendships where $1::uuid in (low, high) and $2::uuid in (low, high)", [A, B])).n,
+], [1, 0]);
 await eq("…Bravo is told", async () => (await one("select title from public.notifications where user_id = $1 and kind = 'squad_answered'", [B])).title, "You're in the squad");
+await eq("…the post stays open (1 of 2 filled)", async () => (await one("select status from public.squad_posts where id = $1", [P1])).status, "open");
 await err("…answering twice is refused", "PT404", () => as(A, () => q("select public.answer_join_request($1, $2, false)", [P1, B])));
 await ok("Charlie asks, then takes it back", async () => { await as(C, () => q("select public.request_to_join($1, null)", [P1])); await as(C, () => q("select public.cancel_join_request($1)", [P1])); });
 await eq("…the request is gone", async () => (await one("select count(*)::int n from public.squad_post_requests where post_id = $1 and user_id = $2", [P1, C])).n, 0);
 await ok("Charlie asks again; Alpha declines", async () => { await as(C, () => q("select public.request_to_join($1, null)", [P1])); await as(A, () => q("select public.answer_join_request($1, $2, false)", [P1, C])); });
-await eq("…Charlie is told politely and isn't made a friend", async () => [(await one("select title from public.notifications where user_id = $1 and kind = 'squad_answered'", [C])).title, (await one("select count(*)::int n from public.friendships where $1::uuid in (low, high) and $2::uuid in (low, high)", [A, C])).n], ["Squad request declined", 0]);
+await eq("…Charlie is told politely and isn't added", async () => [(await one("select title from public.notifications where user_id = $1 and kind = 'squad_answered'", [C])).title, (await one("select count(*)::int n from public.group_members g join public.squad_posts s on s.chat_id = g.channel_id where s.id = $1 and g.user_id = $2", [P1, C])).n], ["Squad request declined", 0]);
 
 // --- Blocks.
 await ok("Delta blocks Alpha", () => as(D, () => q("insert into public.user_blocks (blocked_id) values ($1)", [A])));
@@ -114,13 +117,14 @@ await err("Charlie can't close Alpha's post", "42501", () => as(C, () => q("sele
 await ok("Alpha closes the BR post", () => as(A, () => q("select public.close_squad_post($1)", [P1])));
 await err("…nobody can ask to join a closed post", "PT409", () => as(E, () => q("select public.request_to_join($1, null)", [P1])));
 await eq("…it's gone from Echo's board but Alpha still sees it", async () => [(await board(E)).some((p) => p.id === P1), (await board(A)).find((p) => p.id === P1).status], [false, "closed"]);
+const P2 = await ok("Alpha posts again (MP)", () => post(A, { mode: "mp" }));
 await ok("an admin closes Alpha's MP post", () => as(ADMIN, () => q("select public.close_squad_post($1)", [P2])));
 await eq("…and that's in the audit log", () => audits("squad_post.closed"), 1);
-const P3 = await ok("Alpha posts a third today (both others closed)", () => post(A));
+const P3 = await ok("Alpha posts a third today", () => post(A));
 await ok("…and closes it", () => as(A, () => q("select public.close_squad_post($1)", [P3])));
 await err("…a fourth post in one day is refused (3 a day)", "PT429", () => post(A));
-await q("update public.squad_posts set created_at = now() - interval '10 days', expires_at = now() - interval '1 day' where id = $1", [PF]);
-await eq("expired posts drop off the board", async () => (await board(B)).some((p) => p.id === PF), false);
+await q("update public.squad_posts set created_at = now() - interval '10 hours', expires_at = now() - interval '1 minute' where id = $1", [PF]);
+await eq("ended posts drop off the board", async () => (await board(B)).some((p) => p.id === PF), false);
 await err("…and can't be joined", "PT409", () => as(B, () => q("select public.request_to_join($1, null)", [PF])));
 
 // --- Reports.
@@ -185,7 +189,7 @@ await err("…the 6th in an hour is refused", "PT429", () => as(A, () => q("sele
 
 // --- No links or phone numbers (scams; numbers are private).
 await err("no links in a squad post", "PT422", () => post(B, { body: "join my group at chat.whatsapp.com/abc" }));
-await err("no phone numbers in 'when you play'", "PT422", () => post(B, { when: "call 077 123 4567" }));
+await err("no phone numbers in a squad note", "PT422", () => post(B, { body: "call 077 123 4567" }));
 await err("no phone numbers in a join note", "PT422", () => as(C, () => q("select public.request_to_join($1, 'my number +263 77 123 4567')", [PE])));
 await err("no links in an idea", "PT422", () => as(D, () => q("insert into public.ideas (body) values ('See www.example.com for my plan')")));
 await err("no links in a comment", "PT422", () => as(D, () => q("insert into public.idea_comments (idea_id, body) values ($1, 'details at https://x.io')", [I1])));
