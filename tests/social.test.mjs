@@ -78,7 +78,10 @@ await err("a blocked player can't send a request", "PT409", () => friend(A, D));
 await eq("Echo and Foxtrot's mutual requests become a friendship", async () => [await friend(E, F), await friend(F, E)], ["requested", "friends"]);
 
 // --- Private messages.
-await err("no private chat without being friends", "PT409", () => as(A, () => q("select public.open_dm($1)", [C])));
+// Stage 2 (v4): a stranger's first message becomes a request (see core.test.mjs);
+// players who take messages from nobody new can't be reached.
+await as(C, () => q("update public.profiles set message_privacy = 'nobody' where id = $1", [C]));
+await err("no private chat with someone who takes messages from friends only", "PT409", () => as(A, () => q("select public.open_dm($1)", [C])));
 const slug = await ok("Alpha opens a chat with Bravo", () => as(A, async () => (await one("select public.open_dm($1) s", [B])).s));
 await eq("Bravo gets the same conversation", () => as(B, async () => (await one("select public.open_dm($1) s", [A])).s), slug);
 const ch = (await one("select id from public.chat_channels where slug = $1", [slug])).id;

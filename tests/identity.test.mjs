@@ -60,7 +60,7 @@ await ok("Bravo makes theirs private", () => setp(B, "profile_visibility", "priv
 await ok("Alpha writes a bio", () => setp(A, "bio", "IGL. Shipment enjoyer. Zim represent."));
 await err("bios over 160 characters are refused", "23514", () => setp(A, "bio", "x".repeat(161)));
 await err("hidden characters in a bio are refused", "23514", () => setp(A, "bio", "Hi" + String.fromCodePoint(0x202e) + "there"));
-await err("unknown visibility refused", "23514", () => setp(C, "profile_visibility", "friends"));
+await err("unknown visibility refused", "23514", () => setp(C, "profile_visibility", "secret"));
 await eq("players can't edit someone else's bio", () => as(B, async () => (await q("update public.profiles set bio = 'hacked' where id = $1", [A])).affectedRows), 0);
 
 // --- A solo tournament with confirmed results (the admin created it, so hosts it).
