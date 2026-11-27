@@ -1,5 +1,6 @@
 // Push reminders: attack tests.
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 // Migrations folder: passed by tests/run-all.mjs, or ../migrations when run alone.
 const dir = process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "migrations");
-const db = new PGlite();
+const db = new PGlite({ extensions: { pg_trgm } });
 await db.exec(`
   create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
   grant usage on schema public to anon, authenticated, service_role;
@@ -34,7 +35,7 @@ for (const f of fs.readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) aw
 
 const id = (n) => `00000000-0000-0000-0000-0000000000${n}`;
 const A = id("0a"), B = id("0b"), C = id("0c");
-for (const [u, name] of [[A, "Alpha"], [B, "Bravo"], [C, "Charlie"]]) {
+for (const u of [A, B, C]) {
   await db.query("insert into auth.users (id) values ($1)", [u]);
 }
 let pass = 0, fail = 0;

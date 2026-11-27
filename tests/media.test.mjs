@@ -1,5 +1,6 @@
 // Chat pictures, videos and stickers: attack tests.
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 // Migrations folder: passed by tests/run-all.mjs, or ../migrations when run alone.
 const dir = process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "migrations");
-const db = new PGlite();
+const db = new PGlite({ extensions: { pg_trgm } });
 await db.exec(`
   create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
   grant usage on schema public to anon, authenticated, service_role;
