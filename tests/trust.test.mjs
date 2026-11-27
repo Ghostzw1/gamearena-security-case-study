@@ -69,7 +69,7 @@ await err("a room marked 'sponsorship pending' is refused", "42501", () => room(
 const R1 = (await ok("a plain free room is fine", () => room(A)))?.id;
 await err("the room's host can't add a sponsor later", "42501", () => as(A, () => q("update public.tournaments set sponsor_name = 'Econet', sponsor_status = 'confirmed' where id = $1", [R1])));
 await err("a confirmed sponsor needs a name", "23514", () => as(ADMIN, () => q("update public.tournaments set sponsor_status = 'confirmed', sponsor_name = null where id = $1", [R1])));
-await ok("admins can confirm a real sponsor", () => as(ADMIN, () => q("update public.tournaments set sponsor_name = 'Econet', sponsor_status = 'confirmed' where id = $1", [R1])));
+await ok("admins can confirm a real sponsor (with Activision's approval recorded)", () => as(ADMIN, () => q("update public.tournaments set sponsor_name = 'Econet', sponsor_publisher_approved = true, sponsor_status = 'confirmed' where id = $1", [R1])));
 
 // --- Status moves.
 await ok("host opens… (open → live)", () => as(A, () => q("update public.tournaments set status = 'live' where id = $1", [R1])));

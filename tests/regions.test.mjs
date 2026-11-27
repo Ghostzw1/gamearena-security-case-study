@@ -76,13 +76,15 @@ const ad = await ok("admin creates an ad", () => as(ADMIN, async () => (await q(
 await err("javascript: link rejected", "23514", () => as(ADMIN, () => q("insert into public.sponsored_slots (placement, sponsor, headline, cta_url) values ('hub', 'X', 'Bad link', 'javascript:alert(1)')")));
 await err("plain http link rejected", "23514", () => as(ADMIN, () => q("insert into public.sponsored_slots (placement, sponsor, headline, cta_url) values ('hub', 'X', 'Bad link', 'http://example.com')")));
 await err("unknown placement rejected", "23514", () => as(ADMIN, () => q("insert into public.sponsored_slots (placement, sponsor, headline, cta_url) values ('popup', 'X', 'Pop', 'https://example.com')")));
+// Stage 6: ads are switched off by default (G4); the owner switches them on later.
+await q("update public.app_config set ads_enabled = true");
 await eq("visitors see the running ad", () => as("anon", async () => (await q("select headline from public.sponsored_slots")).rows), [{ headline: "Gaming bundles" }]);
 await expectNone("normal player can't pause the ad", () => as(B, async () => (await q("update public.sponsored_slots set active = false where id = $1", [ad])).affectedRows));
 await err("admin can't change the ad's link after creation", "42501", () => as(ADMIN, () => q("update public.sponsored_slots set cta_url = 'https://other.example.com' where id = $1", [ad])));
 await ok("admin pauses the ad", () => as(ADMIN, () => q("update public.sponsored_slots set active = false where id = $1", [ad])));
 await eq("paused ad hidden from visitors", () => as("anon", async () => (await q("select * from public.sponsored_slots")).rows.length), 0);
 await eq("admin still sees paused ad", () => as(ADMIN, async () => (await q("select * from public.sponsored_slots")).rows.length), 1);
-await ok("admin creates an expired ad", () => as(ADMIN, () => q("insert into public.sponsored_slots (placement, sponsor, headline, cta_url, starts_at, ends_at) values ('chat_lobby', 'Old', 'Expired', 'https://example.com', now() - interval '3 days', now() - interval '1 day')")));
+await ok("admin creates an expired ad", () => as(ADMIN, () => q("insert into public.sponsored_slots (placement, sponsor, headline, cta_url, starts_at, ends_at) values ('compete', 'Old', 'Expired', 'https://example.com', now() - interval '3 days', now() - interval '1 day')")));
 await eq("expired ad hidden from visitors", () => as("anon", async () => (await q("select * from public.sponsored_slots")).rows.length), 0);
 await expectNone("normal player can't delete ads", () => as(B, async () => (await q("delete from public.sponsored_slots")).affectedRows));
 
